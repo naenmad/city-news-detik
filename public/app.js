@@ -35,8 +35,16 @@ class DetikNewsApp {
         this.viewJsonBtn?.addEventListener('click', () => this.switchView('json'));
         this.copyJsonBtn?.addEventListener('click', () => this.copyJsonToClipboard());
 
-        // Input validation
-        this.cityInput?.addEventListener('input', () => this.validateInput());
+        // Input validation and auto-lowercase
+        this.cityInput?.addEventListener('input', (e) => {
+            // Auto convert to lowercase
+            const value = e.target.value;
+            const lowercaseValue = value.toLowerCase();
+            if (value !== lowercaseValue) {
+                e.target.value = lowercaseValue;
+            }
+            this.validateInput();
+        });
     }
 
     switchView(view) {
@@ -135,7 +143,8 @@ class DetikNewsApp {
             this.setLoadingState(true);
             this.clearResults();
 
-            const data = await this.fetchNews(city);
+            const includeContent = document.getElementById('includeContent')?.checked || false;
+            const data = await this.fetchNews(city, includeContent);
             this.currentData = data;
 
             if (data && data.data && data.data.length > 0) {
@@ -153,8 +162,17 @@ class DetikNewsApp {
         }
     }
 
-    async fetchNews(city) {
-        const response = await fetch(`/api/detik-news?tag=${encodeURIComponent(city)}`);
+    async fetchNews(city, includeContent = false) {
+        const params = new URLSearchParams({
+            tag: city
+        });
+
+        if (includeContent) {
+            params.append('content', 'true');
+            params.append('contentLimit', '500');
+        }
+
+        const response = await fetch(`/api/detik-news?${params.toString()}`);
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -206,6 +224,25 @@ class DetikNewsApp {
         const publishedAt = article.publishedAt || 'Waktu tidak diketahui';
         const title = article.title || 'Judul tidak tersedia';
         const link = article.link || '#';
+        const excerpt = article.excerpt || '';
+        const content = article.content || '';
+
+        // Create excerpt/content section
+        let excerptSection = '';
+        if (content) {
+            excerptSection = `
+                <div class="news-excerpt">
+                    <p class="excerpt-text">${content}</p>
+                    <span class="content-badge">Isi Lengkap</span>
+                </div>
+            `;
+        } else if (excerpt) {
+            excerptSection = `
+                <div class="news-excerpt">
+                    <p class="excerpt-text">${excerpt}</p>
+                </div>
+            `;
+        }
 
         card.innerHTML = `
             <div class="news-image">
@@ -228,6 +265,7 @@ class DetikNewsApp {
                         ${title}
                     </a>
                 </h3>
+                ${excerptSection}
                 <div class="news-actions">
                     <a href="${link}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline">
                         📖 Baca Selengkapnya

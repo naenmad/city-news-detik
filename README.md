@@ -12,6 +12,10 @@
 - 🌍 **Multi-City Support** - Dukungan untuk 15+ kota di Indonesia
 - 🔍 **Global Search** - Pencarian berita berdasarkan keyword
 - 📱 **Responsive UI** - Antarmuka web modern dengan glassmorphism design
+- 📖 **Content Extraction** - Ekstraksi isi berita lengkap dengan pembersihan otomatis
+- 🧹 **Smart Content Cleaning** - Penghapusan script, iklan, dan elemen UI yang tidak diperlukan
+- 📝 **Flexible Content Format** - Pilihan format string atau paragraf terstruktur
+- 🔄 **Case-Insensitive Input** - Input otomatis di-convert ke lowercase
 - ⚡ **Fast Performance** - Optimized scraping dengan caching
 - 🔄 **Real-time Data** - Berita terkini langsung dari sumber
 - 📊 **Pagination** - Navigasi hasil yang mudah
@@ -67,28 +71,102 @@ GET /api/detik-news?tag={nama_kota}
 **Parameter:**
 - `tag` (required) - Nama kota (string)
 - `limit` (optional) - Jumlah maksimal berita (number, default: 10)
+- `content` (optional) - Sertakan isi berita lengkap (boolean, default: false)
+- `contentLimit` (optional) - Batas karakter isi berita (number, default: 500)
+- `format` (optional) - Format content: "string" atau "paragraphs" (default: "string")
 
 **Contoh Request:**
 ```bash
+# Berita basic (title, link, image, publishedAt, excerpt)
 curl "http://localhost:3000/api/detik-news?tag=jakarta&limit=5"
+
+# Berita dengan isi lengkap (format string)
+curl "http://localhost:3000/api/detik-news?tag=jakarta&limit=3&content=true"
+
+# Berita dengan isi dalam format paragraf terstruktur
+curl "http://localhost:3000/api/detik-news?tag=jakarta&content=true&format=paragraphs"
+
+# Berita dengan isi terbatas 300 karakter
+curl "http://localhost:3000/api/detik-news?tag=jakarta&content=true&contentLimit=300"
 ```
 
-**Response:**
+**Response (Basic):**
 ```json
 {
   "source": "Detik - jakarta",
   "tag": "jakarta",
   "total": 5,
+  "includeContent": false,
   "data": [
     {
       "title": "Judul Berita",
       "link": "https://news.detik.com/...",
       "image": "https://akcdn.detik.net.id/...",
       "publishedAt": "2 jam lalu",
-      "source": "Detik"
+      "source": "Detik",
+      "excerpt": "Ringkasan berita dalam 200 karakter..."
     }
   ]
 }
+```
+
+**Response (With Content - String Format):**
+```json
+{
+  "source": "Detik - jakarta",
+  "tag": "jakarta",
+  "total": 3,
+  "includeContent": true,
+  "data": [
+    {
+      "title": "Judul Berita",
+      "link": "https://news.detik.com/...",
+      "image": "https://akcdn.detik.net.id/...",
+      "publishedAt": "2 jam lalu",
+      "source": "Detik",
+      "excerpt": "Ringkasan berita...",
+      "content": "Isi berita lengkap yang sudah dibersihkan dari script, iklan, dan elemen UI yang tidak perlu. Content ini sudah difilter untuk menghasilkan teks yang rapi dan mudah dibaca."
+    }
+  ]
+}
+```
+
+**Response (With Content - Paragraphs Format):**
+```json
+{
+  "source": "Detik - jakarta",
+  "tag": "jakarta",
+  "total": 1,
+  "includeContent": true,
+  "data": [
+    {
+      "title": "Judul Berita",
+      "link": "https://news.detik.com/...",
+      "image": "https://akcdn.detik.net.id/...",
+      "publishedAt": "2 jam lalu",
+      "source": "Detik",
+      "excerpt": "Ringkasan berita...",
+      "content": {
+        "format": "paragraphs",
+        "totalParagraphs": 5,
+        "totalWords": 250,
+        "paragraphs": [
+          {
+            "id": 1,
+            "text": "Paragraf pertama dari berita...",
+            "wordCount": 45
+          },
+          {
+            "id": 2,
+            "text": "Paragraf kedua dari berita...",
+            "wordCount": 52
+          }
+        ]
+      }
+    }
+  ]
+}
+```
 ```
 
 #### 2. Multi-City Support (API v2)
@@ -148,11 +226,17 @@ curl "http://localhost:3000/api/v2/search?q=pemilu&limit=10"
 API ini dilengkapi dengan antarmuka web modern yang dapat diakses di `http://localhost:3000`
 
 ### Fitur Web Interface:
-- 🔍 **Form Pencarian** - Input dengan autocomplete untuk kota
+- 🔍 **Form Pencarian** - Input dengan autocomplete untuk kota (auto-lowercase)
+- ☑️ **Content Toggle** - Checkbox untuk menyertakan isi berita lengkap
 - 📊 **View Toggle** - Beralih antara tampilan Cards dan JSON
 - 📋 **Copy to Clipboard** - Copy response JSON dengan satu klik
 - 📚 **Dokumentasi Interaktif** - Panduan lengkap penggunaan API
 - 🔗 **Social Links** - Link ke GitHub dan LinkedIn developer
+
+### Input Tips:
+- **Case Insensitive**: Input "Jakarta", "JAKARTA", atau "jakarta" semua akan berfungsi
+- **Auto-lowercase**: Input otomatis dikonversi ke huruf kecil
+- **Content Mode**: Centang checkbox untuk mendapatkan isi berita lengkap (memerlukan waktu lebih lama)
 
 ## 🛠️ Teknologi yang Digunakan
 
@@ -260,6 +344,29 @@ API mengembalikan error dalam format JSON:
 - `NO_NEWS_FOUND` - Tidak ada berita ditemukan
 - `SCRAPING_ERROR` - Error saat scraping
 - `INVALID_PARAMETER` - Parameter tidak valid
+
+## ⚡ Performance & Limitations
+
+### Response Time
+- **Basic Mode** (excerpt only): ~500ms - 2s per request
+- **Content Mode** (full content): ~2s - 8s per request (due to additional page fetching)
+
+### Content Fetching
+- **Excerpt**: Diambil dari halaman listing (cepat)
+- **Full Content**: Memerlukan request tambahan ke halaman detail setiap artikel (lebih lambat)
+- **Rate Limiting**: Hindari request bersamaan dengan `content=true` untuk mencegah overload
+
+### Best Practices
+```bash
+# ✅ Untuk browsing cepat (gunakan excerpt)
+curl "http://localhost:3000/api/detik-news?tag=jakarta&limit=10"
+
+# ✅ Untuk detail artikel (batasi jumlah)
+curl "http://localhost:3000/api/detik-news?tag=jakarta&limit=3&content=true"
+
+# ❌ Hindari - terlalu berat
+curl "http://localhost:3000/api/detik-news?tag=jakarta&limit=20&content=true"
+```
 
 ## 📊 Rate Limiting
 

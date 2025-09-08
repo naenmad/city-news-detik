@@ -37,8 +37,13 @@ router.get('/news', async (req, res) => {
             page = 1,
             sort = 'newest',
             category,
-            date
+            date,
+            content = false,
+            contentLimit = 500
         } = req.query;
+
+        // Parse boolean for content
+        const includeContent = content === 'true' || content === '1';
 
         // Validasi input
         if (!tag && !tags) {
@@ -48,8 +53,10 @@ router.get('/news', async (req, res) => {
             });
         }
 
-        // Handle multiple tags
-        const cityTags = tags ? tags.split(',').map(t => t.trim()) : [tag];
+        // Handle multiple tags with case normalization
+        const cityTags = tags ?
+            tags.split(',').map(t => t.trim().toLowerCase()) :
+            [tag?.toLowerCase().trim()];
         const availableTags = getCityTags();
 
         // Validasi tags
@@ -64,17 +71,18 @@ router.get('/news', async (req, res) => {
         // Scraping data untuk semua tags
         const results = await Promise.allSettled(
             cityTags.map(async (cityTag) => {
-                const cacheKey = `news-${cityTag}-${date || 'latest'}`;
+                const cacheKey = `news-${cityTag}-${date || 'latest'}-${includeContent}`;
                 let cached = getCachedData(cacheKey);
 
                 if (!cached) {
-                    cached = await detikScrapers.scrapeDetikNews(cityTag);
+                    const options = { includeContent, contentLimit: parseInt(contentLimit) };
+                    cached = await detikScrapers(cityTag, options);
                     setCachedData(cacheKey, cached);
                 }
 
                 return {
                     tag: cityTag,
-                    ...cached
+                    data: cached
                 };
             })
         );
@@ -184,7 +192,7 @@ router.get('/search', async (req, res) => {
         }
 
         const results = await Promise.allSettled(
-            searchTags.map(cityTag => detikScrapers.scrapeDetikNews(cityTag))
+            searchTags.map(cityTag => detikScrapers(cityTag))
         );
 
         let allNews = [];
@@ -257,7 +265,7 @@ router.get('/trending', async (req, res) => {
         // Untuk demo, kita ambil sample dari beberapa kota
         const sampleTags = getCityTags().slice(0, 3);
         const results = await Promise.allSettled(
-            sampleTags.map(tag => detikScrapers.scrapeDetikNews(tag))
+            sampleTags.map(tag => detikScrapers(tag))
         );
 
         let allTitles = [];
