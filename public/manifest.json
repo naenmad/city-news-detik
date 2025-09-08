@@ -1,0 +1,118 @@
+{
+    "name": "Detik News API - Professional Interface",
+    "short_name": "Detik News API",
+    "description": "Professional interface for accessing latest news from various cities in Indonesia",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f8fafc",
+    "theme_color": "#3b82f6",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "id",
+    "categories": [
+        "news",
+        "utilities"
+    ],
+    "screenshots": [
+        {
+            "src": "/images/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/images/screenshot-narrow.png",
+            "sizes": "640x1136",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ],
+    "icons": [
+        {
+            "src": "/images/icon-72x72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-96x96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-128x128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-152x152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/images/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Jakarta News",
+            "short_name": "Jakarta",
+            "description": "Get latest news from Jakarta",
+            "url": "/?tag=jakarta",
+            "icons": [
+                {
+                    "src": "/images/icon-96x96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Bandung News",
+            "short_name": "Bandung",
+            "description": "Get latest news from Bandung",
+            "url": "/?tag=bandung",
+            "icons": [
+                {
+                    "src": "/images/icon-96x96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Surabaya News",
+            "short_name": "Surabaya",
+            "description": "Get latest news from Surabaya",
+            "url": "/?tag=surabaya",
+            "icons": [
+                {
+                    "src": "/images/icon-96x96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detik News API - Professional Interface</title>
+    <meta name="description"
+        content="Professional interface for accessing latest news from various cities in Indonesia through Detik News API">
+    <meta name="keywords" content="detik news, api, berita indonesia, news scraper">
+    <meta name="author" content="City News API">
+    <meta name="theme-color" content="#3b82f6">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Meta Tags for SEO and Social -->
+    <meta property="og:title" content="Detik News API - Professional Interface">
+    <meta property="og:description"
+        content="Access latest news from Indonesian cities with our professional API interface">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Detik News API">
+    <meta name="twitter:description" content="Professional news API interface">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="app.js" as="script">
+</head>
+
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo" role="img" aria-label="News icon">📰</div>
+                <h1 class="header-title">Detik News API</h1>
+                <p class="header-subtitle">
+                    Akses berita terkini dari berbagai kota di Indonesia dengan antarmuka profesional dan modern
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main" id="main">
+        <div class="container">
+            <!-- API Form Card -->
+            <section class="card" role="form" aria-labelledby="form-title">
+                <div class="card-header">
+                    <h2 class="card-title" id="form-title">Pencarian Berita</h2>
+                    <p class="card-description">
+                        Masukkan nama kota untuk mengambil berita terkini dari Detik.com
+                    </p>
+                </div>
+                <div class="card-body">
+                    <form id="searchForm" class="news-form" novalidate>
+                        <div class="form-group">
+                            <label for="cityInput" class="form-label">Pilih Kota</label>
+                            <div class="input-group">
+                                <div style="position: relative; flex: 1;">
+                                    <input type="text" id="cityInput" name="tag" class="form-control"
+                                        placeholder="Masukkan nama kota (contoh: jakarta, bandung, surabaya)"
+                                        list="citySuggestions" aria-describedby="cityHelp" autocomplete="off"
+                                        autocapitalize="off" spellcheck="false" required>
+                                    <datalist id="citySuggestions">
+                                        <option value="jakarta">Jakarta - DKI Jakarta</option>
+                                        <option value="bandung">Bandung - Jawa Barat</option>
+                                        <option value="surabaya">Surabaya - Jawa Timur</option>
+                                        <option value="bogor">Bogor - Jawa Barat</option>
+                                        <option value="karawang">Karawang - Jawa Barat</option>
+                                        <option value="yogyakarta">Yogyakarta - DI Yogyakarta</option>
+                                        <option value="semarang">Semarang - Jawa Tengah</option>
+                                        <option value="medan">Medan - Sumatera Utara</option>
+                                        <option value="makassar">Makassar - Sulawesi Selatan</option>
+                                        <option value="palembang">Palembang - Sumatera Selatan</option>
+                                        <option value="malang">Malang - Jawa Timur</option>
+                                        <option value="denpasar">Denpasar - Bali</option>
+                                        <option value="pontianak">Pontianak - Kalimantan Barat</option>
+                                        <option value="balikpapan">Balikpapan - Kalimantan Timur</option>
+                                        <option value="manado">Manado - Sulawesi Utara</option>
+                                    </datalist>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="submitBtn" aria-describedby="btnHelp">
+                                    <span id="btnText">Cari Berita</span>
+                                </button>
+                            </div>
+                            <small id="cityHelp" class="form-text">
+                                Gunakan nama kota dalam bahasa Indonesia. Contoh: jakarta, bandung, surabaya
+                            </small>
+                            <small id="btnHelp" class="form-text">
+                                Tekan Enter atau klik tombol untuk memulai pencarian berita
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results" class="results-section" style="display: none;" aria-live="polite">
+                <div class="results-header">
+                    <h2 class="results-title">Hasil Pencarian</h2>
+                    <div class="results-controls">
+                        <div class="results-count" id="newsCount" role="status" aria-live="polite">0 berita</div>
+                        <div class="view-toggle">
+                            <button type="button" class="btn btn-sm btn-outline active" id="viewCards"
+                                aria-pressed="true">
+                                <span>📰</span> Cards
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline" id="viewJson" aria-pressed="false">
+                                <span>📄</span> JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Cards View -->
+                <div class="news-grid" id="newsGrid" role="feed" aria-label="Daftar berita terkini"></div>
+
+                <!-- JSON View -->
+                <div class="json-view" id="jsonView" style="display: none;">
+                    <div class="json-header">
+                        <h3>Raw JSON Response</h3>
+                        <button type="button" class="btn btn-sm btn-outline" id="copyJson"
+                            title="Copy JSON to clipboard">
+                            <span>📋</span> Copy
+                        </button>
+                    </div>
+                    <pre class="json-content" id="jsonContent"></pre>
+                </div>
+            </section>
+
+            <!-- Documentation Section -->
+            <section class="documentation-section" id="documentation">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📚 Dokumentasi API</h2>
+                        <p class="card-description">Panduan lengkap penggunaan Detik News API v1 & v2</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- API Version Tabs -->
+                        <div class="api-version-tabs">
+                            <button class="tab-btn active" onclick="showApiVersion('v1')">API v1 (Basic)</button>
+                            <button class="tab-btn" onclick="showApiVersion('v2')">API v2 (Enhanced)</button>
+                        </div>
+
+                        <!-- API v1 Documentation -->
+                        <div id="api-v1" class="api-version-content">
+                            <div class="doc-grid">
+                                <div class="doc-item">
+                                    <h3>🚀 Quick Start v1</h3>
+                                    <div class="code-block">
+                                        <code>GET /api/detik-news?tag=jakarta</code>
+                                    </div>
+                                    <p>Contoh penggunaan basic untuk mengambil berita Jakarta</p>
+                                </div>
+
+                                <div class="doc-item">
+                                    <h3>📋 Parameters v1</h3>
+                                    <ul class="param-list">
+                                        <li><code>tag</code> (required) - Nama kota (string)</li>
+                                        <li><code>limit</code> (optional) - Jumlah maksimal berita (number, default: 10)
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="doc-item">
+                                    <h3>📤 Response Format v1</h3>
+                                    <div class="code-block">
+                                        <pre>{
+  "source": "Detik - jakarta",
+  "tag": "jakarta", 
+  "total": 5,
+  "data": [...]
+}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- API v2 Documentation -->
+                        <div id="api-v2" class="api-version-content" style="display: none;">
+                            <div class="doc-grid">
+                                <div class="doc-item">
+                                    <h3>� Enhanced Features v2</h3>
+                                    <div class="feature-list">
+                                        <span class="feature-badge">Multi-City</span>
+                                        <span class="feature-badge">Pagination</span>
+                                        <span class="feature-badge">Search</span>
+                                        <span class="feature-badge">Categories</span>
+                                        <span class="feature-badge">Trending</span>
+                                        <span class="feature-badge">Caching</span>
+                                    </div>
+                                </div>
+
+                                <div class="doc-item">
+                                    <h3>📡 Endpoints v2</h3>
+                                    <div class="endpoint-list">
+                                        <div class="endpoint-item">
+                                            <code>GET /api/v2/news</code>
+                                            <span>Enhanced news with filters</span>
+                                        </div>
+                                        <div class="endpoint-item">
+                                            <code>GET /api/v2/search</code>
+                                            <span>Global search across cities</span>
+                                        </div>
+                                        <div class="endpoint-item">
+                                            <code>GET /api/v2/categories</code>
+                                            <span>Available news categories</span>
+                                        </div>
+                                        <div class="endpoint-item">
+                                            <code>GET /api/v2/trending</code>
+                                            <span>Trending keywords</span>
+                                        </div>
+                                        <div class="endpoint-item">
+                                            <code>GET /api/v2/stats</code>
+                                            <span>API usage statistics</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="doc-item">
+                                    <h3>💡 Examples v2</h3>
+                                    <div class="example-list">
+                                        <div class="example-item">
+                                            <div class="example-label">Multiple Cities:</div>
+                                            <div class="code-block">
+                                                <code>GET /api/v2/news?tags=jakarta,bandung,surabaya</code>
+                                            </div>
+                                        </div>
+                                        <div class="example-item">
+                                            <div class="example-label">With Pagination:</div>
+                                            <div class="code-block">
+                                                <code>GET /api/v2/news?tag=jakarta&page=2&limit=5</code>
+                                            </div>
+                                        </div>
+                                        <div class="example-item">
+                                            <div class="example-label">Category Filter:</div>
+                                            <div class="code-block">
+                                                <code>GET /api/v2/news?tag=jakarta&category=politik</code>
+                                            </div>
+                                        </div>
+                                        <div class="example-item">
+                                            <div class="example-label">Global Search:</div>
+                                            <div class="code-block">
+                                                <code>GET /api/v2/search?q=pemilu&limit=20</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="doc-item">
+                                    <h3>📤 Enhanced Response v2</h3>
+                                    <div class="code-block">
+                                        <pre>{
+  "success": true,
+  "meta": {
+    "total": 25,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 3,
+    "tags": ["jakarta"],
+    "filters": {...}
+  },
+  "data": [...]
+}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        "data": [
+                        {
+                        "title": "Judul Berita",
+                        "link": "https://...",
+                        "image": "https://...",
+                        "publishedAt": "2 jam lalu",
+                        "source": "Detik"
+                        }
+                        ]
+                        }</pre>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <h3>🏙️ Kota yang Didukung</h3>
+                    <div class="city-tags">
+                        <span class="tag">Jakarta</span>
+                        <span class="tag">Bandung</span>
+                        <span class="tag">Surabaya</span>
+                        <span class="tag">Bogor</span>
+                        <span class="tag">Karawang</span>
+                        <span class="tag">Yogyakarta</span>
+                        <span class="tag">Semarang</span>
+                        <span class="tag">Medan</span>
+                        <span class="tag">Makassar</span>
+                        <span class="tag">Palembang</span>
+                        <span class="tag">Malang</span>
+                        <span class="tag">Denpasar</span>
+                        <span class="tag">Pontianak</span>
+                        <span class="tag">Balikpapan</span>
+                        <span class="tag">Manado</span>
+                    </div>
+                    <p class="text-muted">Dan kota lainnya yang tersedia di Detik.com</p>
+                </div>
+        </div>
+        </div>
+        </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section" id="about">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">� Connect</h2>
+                    <p class="card-description">Link koneksi dan source code</p>
+                </div>
+                <div class="card-body">
+                    <div class="social-links-simple">
+                        <a href="https://linkedin.com/in/naen" target="_blank" rel="noopener noreferrer"
+                            class="social-link linkedin">
+                            <span class="icon">💼</span>
+                            <div>
+                                <div class="link-title">LinkedIn</div>
+                                <div class="link-desc">linkedin.com/in/naen</div>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/naenmad" target="_blank" rel="noopener noreferrer"
+                            class="social-link github">
+                            <span class="icon">🐱</span>
+                            <div>
+                                <div class="link-title">GitHub Profile</div>
+                                <div class="link-desc">github.com/naenmad</div>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/naenmad/city-news-detik" target="_blank" rel="noopener noreferrer"
+                            class="social-link repo">
+                            <span class="icon">📦</span>
+                            <div>
+                                <div class="link-title">Source Code</div>
+                                <div class="link-desc">github.com/naenmad/city-news-detik</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon" role="img" aria-label="Search icon">🔍</div>
+            <h3 class="empty-title">Siap Mencari Berita</h3>
+            <p class="empty-description">
+                Masukkan nama kota untuk mulai mengambil berita terkini dari Detik.com.
+                Kami mendukung pencarian untuk berbagai kota di Indonesia.
+            </p>
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div class="news-grid" id="loadingSkeleton" style="display: none;" aria-hidden="true"
+            aria-label="Memuat berita...">
+            <!-- Skeleton cards will be inserted here dynamically -->
+        </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="endpoint-info" role="region" aria-label="Informasi API">
+                    <span aria-label="API endpoint">📡</span>
+                    <code>GET /api/detik-news?tag={kota}</code>
+                </div>
+                <p class="credit">
+                    Dibuat dengan <span aria-label="love">❤️</span> oleh <span class="credit-name">City News API</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/app.js"></script> <!-- Schema.org structured data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Detik News API",
+        "description": "Professional interface for accessing latest news from various cities in Indonesia",
+        "url": "/",
+        "applicationCategory": "NewsApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "City News API"
+        }
+    }
+    </script>
+</body>
+
+</html>
