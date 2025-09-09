@@ -431,27 +431,43 @@ async function scrapeDetik(tag, options = {}) {
                             }
 
                             // Clean up content
+                            // Determine best available content: try to clean article content, else fall back to excerpt or title
+                            let finalContent = null;
                             if (content) {
-                                // Advanced content cleaning with no limit for initial cleaning
                                 const cleanedContent = cleanContent(content);
                                 if (cleanedContent && cleanedContent.length > 50) {
-                                    // Apply content limit after cleaning
-                                    const finalContent = contentLimit && cleanedContent.length > contentLimit ?
+                                    finalContent = contentLimit && cleanedContent.length > contentLimit ?
                                         cleanedContent.substring(0, contentLimit) + '...' : cleanedContent;
-
-                                    // Re-normalize the result with content
-                                    const existingData = results[i];
-                                    results[i] = normalize({
-                                        title: existingData.title,
-                                        link: existingData.link,
-                                        time: existingData.publishedAt,
-                                        image: existingData.image,
-                                        excerpt: existingData.excerpt,
-                                        content: finalContent,
-                                        contentFormat
-                                    });
                                 }
                             }
+
+                            // Fallbacks if no cleaned article content was found
+                            if (!finalContent) {
+                                const existingData = results[i];
+                                if (existingData && existingData.excerpt && existingData.excerpt.length > 20) {
+                                    finalContent = existingData.excerpt;
+                                } else if (existingData && existingData.title) {
+                                    finalContent = existingData.title;
+                                } else {
+                                    finalContent = '';
+                                }
+                                // Respect contentLimit on fallback text too
+                                if (contentLimit && finalContent.length > contentLimit) {
+                                    finalContent = finalContent.substring(0, contentLimit) + '...';
+                                }
+                            }
+
+                            // Re-normalize the result with content (ensures every item has a content field when requested)
+                            const existingData = results[i];
+                            results[i] = normalize({
+                                title: existingData.title,
+                                link: existingData.link,
+                                time: existingData.publishedAt,
+                                image: existingData.image,
+                                excerpt: existingData.excerpt,
+                                content: finalContent,
+                                contentFormat
+                            });
                         }
                     } catch (e) {
                         // ignore fetch errors for article pages

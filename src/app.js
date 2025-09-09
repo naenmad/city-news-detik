@@ -4,7 +4,26 @@ const newsRoute = require('./routes/news.route');
 const enhancedNewsRoute = require('./routes/enhanced-news.route');
 
 const app = express();
-app.use(cors());
+
+// CORS configuration for production
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production'
+        ? ['https://your-frontend-domain.com', 'https://city-news-detik.vercel.app']
+        : '*',
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Basic security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+});
 
 // Serve static files from public/ (includes .well-known used by some devtools)
 app.use(express.static('public'));
