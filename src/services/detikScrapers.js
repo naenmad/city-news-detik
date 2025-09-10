@@ -186,11 +186,17 @@ async function scrapeDetik(tag, options = {}) {
 
             // Clean up title - remove source prefix and date
             if (title) {
-                // Remove source prefixes like "detikNews", "CNN Indonesia", etc
-                title = title.replace(/^(detikNews|detikcom|CNN Indonesia|CNBC Indonesia|Liputan6|Kompas|Tempo|Tribun|Okezone)\s*/i, '');
+                // Remove complex source prefixes with embedded dates (e.g., "detikJatengSenin, 08 Sep 2025 17:02 WIB")
+                title = title.replace(/^(detik[A-Za-z]*)(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu),?\s*\d{1,2}\s+(Jan|Feb|Mar|Apr|Mei|Jun|Jul|Agu|Sep|Okt|Nov|Des)\s+\d{4}\s+\d{1,2}:\d{2}\s+(WIB|WITA|WIT)\s*/i, '');
 
-                // Remove date patterns at the beginning
+                // Remove simple source prefixes like "detikNews", "CNN Indonesia", etc
+                title = title.replace(/^(detik[A-Za-z]*|detikcom|CNN Indonesia|CNBC Indonesia|Liputan6|Kompas|Tempo|Tribun|Okezone)\s*/i, '');
+
+                // Remove standalone date patterns at the beginning
                 title = title.replace(/^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu),?\s*\d{1,2}\s+(Jan|Feb|Mar|Apr|Mei|Jun|Jul|Agu|Sep|Okt|Nov|Des)\s+\d{4}\s+\d{1,2}:\d{2}\s+(WIB|WITA|WIT)\s*/i, '');
+
+                // Remove any remaining detik variations at start
+                title = title.replace(/^detik\w*\s*/i, '');
 
                 // Remove extra whitespace and newlines
                 title = title.replace(/\s+/g, ' ').trim();
